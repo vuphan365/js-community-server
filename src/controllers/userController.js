@@ -1,43 +1,60 @@
 const debug = require('debug')('app:userController');
 const uuid = require('uuid');
 
-function userController(ref) {
+function userController(sql) {
+  function isEmailNotExist(email) {
+    return new Promise((resolve, reject) => {
+      const request = new sql.Request();
+      request.query(`SELECT email FROM dbo.[User] WHERE
+         email = '${email}'`).then((result) => {
+        const userResult = result.recordset[0];
+        debug(userResult)
+        if (userResult.name === 'undefined') {
+          resolve(true);
+        } else {
+          reject();
+        }
+      }).catch(() => resolve(false));
+    });
+  }
   function addEmail(req, res) {
     return new Promise((resolve, reject) => {
-      const { email } = req.body;
+      const { name, email, avatar } = req.body;
       const token = uuid.v4();
-      debug(req.body)
-      ref.push({ email, token }).then(() => {
-        var result = {
-          msg: 'Tạo tài khoản thành công'
-        }
-        resolve(result)
-      }).catch(err => reject(err))
-    })
-  }
+      const transaction = new sql.Transaction();
+      const request = new sql.Request(transaction);
+      debug(`INSERT INTO dbo.[User](name,description,email,token,avatar)
+         VALUES(N'${name}', N'${name}', '${email}', '${token}', '${avatar}')`)
+      isEmailNotExist(email).then(() => {
+        transaction.begin(() => {
+          request.query(`INSERT INTO dbo.[User](name,description,email,token,avatar) VALUES 
+          (N'${name}', N'${name}', '${email}', '${token}', '${avatar}')`)
+              .then((result) => {
+                transaction.commit();
+                res.send(result);
+                resolve(result);
+              }).catch((err) => {
+                res.send(err);
+                reject(err);
+              });
+          });
+        }).catch(() => {
+          let err = 'Tài khoản này đã tồn tại';
+          res.send({err});
+          reject({err});
+        });
+        
+      })
+    }
   function signInWithEmail(req, res) {
     return new Promise((resolve, reject) => {
       const { email } = req.body;
-      ref.orderByChild('email').equalTo(email).once('value').then(snap => {
-        if (snap.val() == null) {
-          var error = {
-            error: 'Tài khoản của bạn không được phép truy cập vào trang này'
-          }
-          reject(error)
-        } else {
-          snap.forEach(user => {
-            const { email, token } = user.val();
-            resolve({ email, token })
-          }).catch(err => {
-            debug(err)
-            reject(err)
-          })
-        }
-
-      }).catch(err => {
-        debug(err)
-        reject(err)
-      })
+      const request = new sql.Request();
+      request.query(`SELECT email, token, [description], avatar, userId, [name] FROM dbo.[User] WHERE
+         email = '${email}'`).then((result) => {
+        const userResult = result.recordset[0];
+        resolve(userResult)
+      }).catch(() => resolve(false));
     })
   }
   return {

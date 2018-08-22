@@ -4,8 +4,8 @@ const debug = require('debug')('app:postRoute');
 const postRouter = express.Router();
 const postController = require('../controllers/postController')
 
-function router(ref) {
-  const { addPost, getPost } = postController(ref)
+function router(sql) {
+  const { addPost, getPosts } = postController(sql)
 
   postRouter.route('/add')
     .post((req, res) => {
@@ -15,7 +15,9 @@ function router(ref) {
     });
   postRouter.route('/get')
     .get((req, res) => {
-      getPost(req, res);
+      getPosts(req, res)
+      .then(result => res.send(result))
+      .catch(err => res.send(err));
     });  
   return postRouter; 
 }

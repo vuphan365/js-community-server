@@ -1,38 +1,38 @@
 const debug = require('debug')('app:postController');
 const uuid = require('uuid');
 
-function postController(ref) {
+function postController(sql) {
   function addPost(req, res) {
     return new Promise((resolve, reject) => {
-      const { type, author, content , date, hashtags } = req.body;
-      const id = uuid.v4();
-      ref.push({ id, type, author, content, date, hashtags }).then(() => {
-        debug('ok')
-        var result = {
-          msg: 'Tạo bài đăng thành công'
-        }
-        debug(result)
-        resolve(result)
-      }).catch(err => reject(err))
+      const request = new sql.Request();
+      request.query(`SELECT * FROM dbo.[Post] WHERE`).then((result) => {
+        const postResult = result.recordset[0];
+        debug(postResult)
+        resolve(postResult)
+      }).catch(() => reject(false));
     })
   }
-  function getPost(req, res) {
-    let posts = [];
-    try {
-      ref.once('value').then(snap => {
-        snap.forEach(post => {
-          const {id, type, author, date, votes, comments, content , hashtags } = post.val();
-          posts.push({id, type, author, date, votes, comments, content , hashtags });
-        })
-        res.send(posts)
+  function getPosts(req, res) {
+    return new Promise((resolve, reject) => {
+      const subRequest = new sql.Request();
+      subRequest.query('SELECT COUNT(*) as total FROM dbo.Post').
+      then(resu => {
+        const total_pages = resu.recordset[0].total / 100;
+        const request = new sql.Request();
+        const {page} = req.query;
+        request.query(`SELECT po.postId, po.authorId, po.title, po.content, po.created_at FROM (
+          SELECT ROW_NUMBER() OVER (Order by postId) AS RN, postId, authorId, title, content, created_at, type
+          FROM dbo.Post)po WHERE RN > ${(page - 1) * 10} AND RN <= ${page * 10}`).then((result) => {
+          const postResult = result.recordset;
+          resolve({posts : postResult, page, total_pages})
       })
-    } catch(err) {
-      res.send(err)
-    }
+      
+      }).catch((err) => {debug(err); reject(false)});
+    })
   }
   return {
     addPost,
-    getPost
+    getPosts
   }
 }
 

@@ -4,8 +4,8 @@ const debug = require('debug')('app:userRoute');
 const userRouter = express.Router();
 const userController = require('../controllers/userController')
 
-function router(ref) {
-  const { addEmail, signInWithEmail } = userController(ref)
+function router(sql) {
+  const { addEmail, signInWithEmail } = userController(sql)
 
   userRouter.route('/user/create')
     .post((req, res) => {
