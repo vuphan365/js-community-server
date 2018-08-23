@@ -2,12 +2,12 @@ const debug = require('debug')('app:postController');
 const uuid = require('uuid');
 
 function postController(sql) {
-  function addPost(req, res) {
+  function getPostById(req, res) {
     return new Promise((resolve, reject) => {
       const request = new sql.Request();
-      request.query(`SELECT * FROM dbo.[Post] WHERE`).then((result) => {
+      let { id } = req.params; 
+      request.query(`SELECT * FROM dbo.[Post] WHERE postId = ${id}`).then((result) => {
         const postResult = result.recordset[0];
-        debug(postResult)
         resolve(postResult)
       }).catch(() => reject(false));
     })
@@ -47,7 +47,7 @@ function postController(sql) {
     })
   }
   return {
-    addPost,
+    getPostById,
     getPosts
   }
 }

@@ -5,11 +5,11 @@ const postRouter = express.Router();
 const postController = require('../controllers/postController')
 
 function router(sql) {
-  const { addPost, getPosts } = postController(sql)
+  const { getPostById, getPosts } = postController(sql)
 
-  postRouter.route('/add')
-    .post((req, res) => {
-      addPost(req, res)
+  postRouter.route('/post/:id')
+    .get((req, res) => {
+      getPostById(req, res)
       .then(result => res.send(result))
       .catch(err => res.send(err));
     });
