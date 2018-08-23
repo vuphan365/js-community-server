@@ -17,14 +17,15 @@ function postController(sql) {
       const subRequest = new sql.Request();
       subRequest.query('SELECT COUNT(*) as total FROM dbo.Post').
       then(resu => {
-        const total_pages = resu.recordset[0].total / 100;
+        const total_pages = resu.recordset[0].total / 10;
+        debug(total_pages)
         const request = new sql.Request();
         const {page} = req.query;
         request.query(`SELECT po.postId, po.authorId, po.title, po.content, po.created_at FROM (
           SELECT ROW_NUMBER() OVER (Order by postId) AS RN, postId, authorId, title, content, created_at, type
           FROM dbo.Post)po WHERE RN > ${(page - 1) * 10} AND RN <= ${page * 10}`).then((result) => {
           const postResult = result.recordset;
-          resolve({posts : postResult, page, total_pages})
+          resolve({total_pages, page, posts : postResult })
       })
       
       }).catch((err) => {debug(err); reject(false)});
