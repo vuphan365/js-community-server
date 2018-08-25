@@ -81,7 +81,7 @@ function postController(sql) {
             ON comment.postId = [like].postId) total_like_comment
             ON total_like_comment.postId = Post.postId
             INNER JOIN dbo.[User] ON [User].userId = Post.authorId
-          )po WHERE RN > ${(page - 1) * 10} AND RN <= ${page * 10}`).then((result) => {
+          )po WHERE RN > ${(page) * 10} AND RN <= ${(page + 1) * 10}`).then((result) => {
             const postResult =  result.recordset;
             resolve({total_pages, page, posts : postResult })
             }).catch((err) => {debug(err); reject(false)});
