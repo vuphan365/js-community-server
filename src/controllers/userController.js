@@ -7,14 +7,14 @@ function userController(sql) {
       const request = new sql.Request();
       request.query(`SELECT email FROM dbo.[User] WHERE
          email = '${email}'`).then((result) => {
-        const userResult = result.recordset[0];
-        debug(userResult)
-        if (userResult.name === 'undefined') {
-          resolve(true);
-        } else {
-          reject();
-        }
-      }).catch(() => resolve(false));
+          const userResult = result.recordset[0];
+          debug(userResult)
+          if (userResult.name === 'undefined') {
+            resolve(true);
+          } else {
+            reject();
+          }
+        }).catch(() => resolve(false));
     });
   }
   function addEmail(req, res) {
@@ -29,32 +29,38 @@ function userController(sql) {
         transaction.begin(() => {
           request.query(`INSERT INTO dbo.[User](name,description,email,token,avatar) VALUES 
           (N'${name}', N'${name}', '${email}', '${token}', '${avatar}')`)
-              .then((result) => {
-                transaction.commit();
-                res.send(result);
-                resolve(result);
-              }).catch((err) => {
-                res.send(err);
-                reject(err);
-              });
-          });
-        }).catch(() => {
-          let err = 'Tài khoản này đã tồn tại';
-          res.send({err});
-          reject({err});
+            .then((result) => {
+              transaction.commit();
+              res.send(result);
+              resolve(result);
+            }).catch((err) => {
+              res.send(err);
+              reject(err);
+            });
         });
-        
-      })
-    }
+      }).catch(() => {
+        let err = 'Tài khoản này đã tồn tại';
+        res.send({ err });
+        reject({ err });
+      });
+
+    })
+  }
   function signInWithEmail(req, res) {
     return new Promise((resolve, reject) => {
-      const { email } = req.body;
-      const request = new sql.Request();
-      request.query(`SELECT email, token, [description], avatar, userId, [name] FROM dbo.[User] WHERE
-         email = '${email}'`).then((result) => {
-        const userResult = result.recordset[0];
-        resolve(userResult)
-      }).catch(() => resolve(false));
+      const { email, picture, name } = req.body;
+
+      const subRequest = new sql.Request();
+      subRequest.query(`UPDATE dbo.[User] SET avatar = '${picture}', [name] = '${name}' WHERE email = '${email}'`)
+        .then(resu => {
+          debug(resu);
+          const request = new sql.Request();
+          request.query(`SELECT email, token, [description], avatar, userId, [name] FROM dbo.[User] WHERE
+          email = '${email}'`).then((result) => {
+              const userResult = result.recordset[0];
+              resolve(userResult)
+            }).catch(() => resolve(false));
+        }).catch(() => resolve(false));
     })
   }
   return {

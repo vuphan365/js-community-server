@@ -5,7 +5,8 @@ const postRouter = express.Router();
 const postController = require('../controllers/postController')
 
 function router(sql) {
-  const { getPostById, getPosts, getLikeById, getCommentById } = postController(sql)
+  const { getPostById, getPosts, getLikeById, getCommentById, getPostsByHashtag, getAllHashTag
+  , getHashTagById, addPost, addCommentToPost, addLikeToPost, deleteAPost } = postController(sql)
 
   postRouter.route('/post/:id')
     .get((req, res) => {
@@ -24,13 +25,55 @@ function router(sql) {
       getCommentById(req, res)
       .then(result => res.send(result))
       .catch(err => res.send(err));
-    });    
+    });
+  postRouter.route('/hashtag/:id')
+    .get((req, res) => {
+      getHashTagById(req, res)
+      .then(result => res.send(result))
+      .catch(err => res.send(err));
+    });        
   postRouter.route('/get')
     .get((req, res) => {
       getPosts(req, res)
       .then(result => res.send(result))
       .catch(err => res.send(err));
+    });
+  postRouter.route('/get/hashtag/all')
+    .get((req, res) => {
+      getAllHashTag(req, res)
+      .then(result => res.send(result))
+      .catch(err => res.send(err));
     });  
+  postRouter.route('/get/hashtag')
+    .get((req, res) => {
+      getPostsByHashtag(req, res)
+      .then(result => res.send(result))
+      .catch(err => res.send(err));
+    }); 
+  postRouter.route('/add')
+  .post((req, res) => {
+    addPost(req, res)
+    .then(result => res.send(result))
+    .catch(err => res.send(err));
+  });
+  postRouter.route('/add/comment')
+  .post((req, res) => {
+    addCommentToPost(req, res)
+    .then(result => res.send(result))
+    .catch(err => res.send(err));
+  });  
+  postRouter.route('/add/like')
+  .post((req, res) => {
+    addLikeToPost(req, res)
+    .then(result => res.send(result))
+    .catch(err => res.send(err));
+  });
+  postRouter.route('/delete')
+  .post((req, res) => {
+    deleteAPost(req, res)
+    .then(result => res.send(result))
+    .catch(err => res.send(err));
+  });         
   return postRouter; 
 }
 
