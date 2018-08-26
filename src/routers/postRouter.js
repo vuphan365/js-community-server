@@ -6,7 +6,7 @@ const postController = require('../controllers/postController')
 
 function router(sql) {
   const { getPostById, getPosts, getLikeById, getCommentById, getPostsByHashtag, getAllHashTag
-  , getHashTagById, addPost, addCommentToPost, addLikeToPost, deleteAPost } = postController(sql)
+  , getHashTagById, addPost, addCommentToPost, addLikeToPost, deleteAPost, deleteAComment } = postController(sql)
 
   postRouter.route('/post/:id')
     .get((req, res) => {
@@ -71,6 +71,12 @@ function router(sql) {
   postRouter.route('/delete')
   .post((req, res) => {
     deleteAPost(req, res)
+    .then(result => res.send(result))
+    .catch(err => res.send(err));
+  });  
+  postRouter.route('/delete/comment')
+  .post((req, res) => {
+    deleteAComment(req, res)
     .then(result => res.send(result))
     .catch(err => res.send(err));
   });         

@@ -39,6 +39,7 @@ app.use((req, res, next) => {
 
 const userRouter = require('./src/routers/userRouter')(sql);
 const postRouter = require('./src/routers/postRouter')(sql);
+const rankRouter = require('./src/routers/rankRouter')(sql);
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTION');
@@ -48,6 +49,7 @@ app.use((req, res, next) => {
 
 app.use('/post', postRouter);
 app.use('/', userRouter);
+app.use('/rank', rankRouter);
 app.get('/', (req, res) => {
   res.json(book);
 });

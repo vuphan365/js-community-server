@@ -45,9 +45,9 @@ function postController(sql) {
     return new Promise((resolve, reject) => {
       const request = new sql.Request();
       let { id } = req.params;
-      request.query(`SELECT postId, Comment.userId, [name] AS 'userName', avatar AS 'userAvatar',
+      request.query(`SELECT commentId, postId, Comment.userId, [name] AS 'userName', avatar AS 'userAvatar',
       content, created_at FROM dbo.Comment INNER JOIN dbo.[User] ON [User].userId = Comment.userId
-      WHERE postId = ${id} ORDER BY created_at DESC`).then((result) => {
+      WHERE postId = ${id} AND visible = 1 ORDER BY created_at DESC`).then((result) => {
           const commentResult = result.recordset;
           if (commentResult) resolve(commentResult)
           else resolve([])
@@ -126,7 +126,7 @@ function postController(sql) {
             ON total_like_comment.postId = Post.postId
             INNER JOIN dbo.[User] ON [User].userId = Post.authorId
             INNER JOIN dbo.Hashtag ON Hashtag.postId = Post.postId
-	          WHERE hashtag = N'${h}'
+	          WHERE hashtag = N'${h}' AND visible = 1
           )po WHERE RN > ${(page) * 10} AND RN <= ${(page + 1) * 10}`).then((result) => {
               const postResult = result.recordset;
               resolve({ total_pages, page, posts: postResult })
@@ -196,8 +196,8 @@ function postController(sql) {
       const { postId, userId, content } = req.body
       const request = new sql.Request(transaction);
       transaction.begin(() => {
-        request.query(`INSERT INTO dbo.Comment(postId, userId, content, created_at)
-        VALUES(${postId}, ${userId}, N'${content}', GETDATE())`)
+        request.query(`INSERT INTO dbo.Comment(postId, userId, content, created_at, visible)
+        VALUES(${postId}, ${userId}, N'${content}', GETDATE(), 1)`)
           .then((result) => {
             transaction.commit();
             resolve(result);
@@ -243,6 +243,23 @@ function postController(sql) {
       });
     });
   }
+  function deleteAComment(req, res) {
+    return new Promise((resolve, reject) => {
+      const transaction = new sql.Transaction();
+      const { commentId } = req.body
+      const request = new sql.Request(transaction);
+      transaction.begin(() => {
+        request.query(`UPDATE dbo.Comment SET visible = 0 WHERE commentId = ${commentId}`)
+          .then((result) => {
+            transaction.commit();
+            resolve(result);
+          }).catch((err) => {
+            debug(err)
+            reject(err);
+          });
+      });
+    });
+  }
   return {
     getPostById,
     getPosts,
@@ -254,7 +271,8 @@ function postController(sql) {
     addPost,
     addCommentToPost,
     addLikeToPost,
-    deleteAPost
+    deleteAPost,
+    deleteAComment
   }
 }
 
