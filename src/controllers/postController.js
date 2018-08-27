@@ -21,8 +21,8 @@ function postController(sql) {
       ON comment.postId = [like].postId) total_like_comment
       ON total_like_comment.postId = Post.postId
       WHERE Post.postId = ${id} AND visible = 1`).then((result) => {
-          const postResult = result.recordset[0];
-          resolve(postResult)
+          const post = result.recordset[0];
+          resolve({post})
         }).catch(() => reject(false));
     })
   }
@@ -32,8 +32,8 @@ function postController(sql) {
       let { id } = req.params;
       request.query(`SELECT [Like].userId, [name] FROM dbo.[Like] INNER JOIN dbo.[User] ON
        [User].userId = [Like].userId WHERE postId = ${id}`).then((result) => {
-          const likeResult = result.recordset;
-          if (likeResult) resolve(likeResult)
+          const likes = result.recordset;
+          if (likes) resolve({likes})
           else resolve([])
         }).catch((err) => {
           debug(err)
@@ -48,8 +48,8 @@ function postController(sql) {
       request.query(`SELECT commentId, postId, Comment.userId, [name] AS 'userName', avatar AS 'userAvatar',
       content, created_at FROM dbo.Comment INNER JOIN dbo.[User] ON [User].userId = Comment.userId
       WHERE postId = ${id} AND visible = 1 ORDER BY created_at DESC`).then((result) => {
-          const commentResult = result.recordset;
-          if (commentResult) resolve(commentResult)
+          const comments = result.recordset;
+          if (comments) resolve({comments})
           else resolve([])
         }).catch((err) => {
           debug(err)
@@ -93,8 +93,8 @@ function postController(sql) {
     return new Promise((resolve, reject) => {
       const request = new sql.Request();
       request.query(`SELECT DISTINCT hashtag FROM dbo.Hashtag`).then((result) => {
-        const hashTagResult = result.recordset;
-        if (hashTagResult) resolve(hashTagResult)
+        const hashTags = result.recordset;
+        if (hashTags) resolve({hashTags})
         else resolve([])
       }).catch((err) => {
         debug(err)
