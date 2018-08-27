@@ -10,8 +10,8 @@ function rankController(sql) {
       FROM dbo.[User] LEFT JOIN dbo.Post ON Post.authorId = [User].userId
       LEFT JOIN dbo.[Like] ON [Like].postId = Post.postId GROUP BY 
       [User].userId, [name], avatar ORDER BY total_votes DESC`).then((result) => {
-          const rankResult = result.recordset;
-          if (rankResult) resolve(rankResult)
+          const rank = result.recordset;
+          if (rank) resolve({ rank })
           else resolve([])
         }).catch((err) => {
           debug(err)
@@ -30,8 +30,8 @@ function rankController(sql) {
       LEFT JOIN dbo.[Like] ON [Like].postId = Post.postId GROUP BY 
       [User].userId, [name], avatar ) ra
       WHERE ra.userId = ${userId}`).then((result) => {
-          const rankResult = result.recordset[0];
-          if (rankResult) resolve(rankResult)
+          const rank = result.recordset[0];
+          if (rank) resolve({ rank })
           else resolve([])
         }).catch((err) => {
           debug(err)
