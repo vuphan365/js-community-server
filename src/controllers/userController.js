@@ -49,18 +49,26 @@ function userController(sql) {
   function signInWithEmail(req, res) {
     return new Promise((resolve, reject) => {
       const { email, picture, name } = req.body;
-
       const subRequest = new sql.Request();
-      subRequest.query(`UPDATE dbo.[User] SET avatar = '${picture}', [name] = '${name}' WHERE email = '${email}'`)
+      debug({ email, picture, name });
+      subRequest.query(`UPDATE dbo.[User] SET avatar = '${picture}', [name] = N'${name}' WHERE email = '${email}'`)
         .then(resu => {
           debug(resu);
           const request = new sql.Request();
           request.query(`SELECT email, token, [description], avatar, userId, [name] FROM dbo.[User] WHERE
           email = '${email}'`).then((result) => {
               const userResult = result.recordset[0];
-              resolve(userResult)
-            }).catch(() => resolve(false));
-        }).catch(() => resolve(false));
+              debug(result)
+              if (result) resolve(userResult)
+              else resolve(false)
+            }).catch(err => {
+              debug(err);
+              reject(false)
+            });
+        }).catch(err => {
+          debug(err);
+          reject(false)
+        });
     })
   }
   return {
