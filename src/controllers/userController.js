@@ -58,9 +58,9 @@ function userController(sql) {
           request.query(`SELECT email, token, [description], avatar, userId, [name] FROM dbo.[User] WHERE
           email = '${email}'`).then((result) => {
               const userResult = result.recordset[0];
-              debug(result)
-              if (result) resolve(userResult)
-              else resolve(false)
+              debug(userResult)
+              if (userResult) resolve(userResult)
+              else resolve({error : 'Lỗi'})
             }).catch(err => {
               debug(err);
               reject(false)
