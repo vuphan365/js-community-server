@@ -82,7 +82,8 @@ function postController(sql) {
             ON total_like_comment.postId = Post.postId
             INNER JOIN dbo.[User] ON [User].userId = Post.authorId
             AND visible = 1
-          )po WHERE RN > ${(page) * 10} AND RN <= ${(page + 1) * 10}`).then((result) => {
+          )po WHERE RN > ${(page) * 10} AND RN <= ${(parseInt(page) + 1) * 10}`).then((result) => {
+            debug(`RN > ${(page) * 10} AND RN <= ${(parseInt(page)+ 1) * 10}`)
               const postResult = result.recordset;
               resolve({ total_pages, page, posts: postResult })
             }).catch((err) => { debug(err); reject(false) });
@@ -127,7 +128,7 @@ function postController(sql) {
             INNER JOIN dbo.[User] ON [User].userId = Post.authorId
             INNER JOIN dbo.Hashtag ON Hashtag.postId = Post.postId
 	          WHERE hashtag = N'${h}' AND visible = 1
-          )po WHERE RN > ${(page) * 10} AND RN <= ${(page + 1) * 10}`).then((result) => {
+          )po WHERE RN > ${(page) * 10} AND RN <= ${(parseInt(page) + 1) * 10}`).then((result) => {
               const postResult = result.recordset;
               resolve({ total_pages, page, posts: postResult })
             }).catch((err) => { debug(err); reject(false) });
