@@ -68,7 +68,7 @@ function postController(sql) {
           const likes = []
           const { page } = req.query;
           request.query(`SELECT po.postId, po.authorId,po.title, po.type, po.created_at, po.total_comments, po.total_likes, po.authorName, po.authorAvatar FROM (
-            SELECT ROW_NUMBER() OVER (Order by created_at DESC) AS RN, Post.postId, authorId, [name] AS 'authorName',
+            SELECT ROW_NUMBER() OVER (Order by Post.postId DESC) AS RN, Post.postId, authorId, [name] AS 'authorName',
             avatar AS 'authorAvatar', title, created_at, type, total_like_comment.total_comments, total_like_comment.total_likes
             FROM dbo.Post LEFT JOIN 
             ( SELECT comment.postId, comment.total_comments, [like].total_likes FROM ( SELECT Post.postId, COUNT([Like].userId) AS 'total_likes'
@@ -113,7 +113,7 @@ function postController(sql) {
           const request = new sql.Request();
           const { page } = req.query;
           request.query(`SELECT po.postId, po.authorId, po.title, po.type, po.created_at, po.total_comments, po.total_likes, po.authorName, po.authorAvatar FROM (
-            SELECT ROW_NUMBER() OVER (Order by created_at DESC) AS RN, Post.postId, authorId, [name] AS 'authorName',
+            SELECT ROW_NUMBER() OVER (Order by Post.postId DESC) AS RN, Post.postId, authorId, [name] AS 'authorName',
             avatar AS 'authorAvatar', title, created_at, type, total_like_comment.total_comments, total_like_comment.total_likes
             FROM dbo.Post LEFT JOIN 
             ( SELECT comment.postId, comment.total_comments, [like].total_likes FROM ( SELECT Post.postId, COUNT([Like].userId) AS 'total_likes'
