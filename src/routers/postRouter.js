@@ -6,7 +6,8 @@ const postController = require('../controllers/postController')
 
 function router(sql) {
   const { getPostById, getPosts, getLikeById, getCommentById, getPostsByHashtag, getAllHashTag
-  , getHashTagById, addPost, addCommentToPost, addLikeToPost, deleteAPost, deleteAComment } = postController(sql)
+  , getHashTagById, addPost, addCommentToPost, addLikeToPost, deleteAPost, deleteAComment
+  , getOthers, getPostsOfUser, getInfoOfUser } = postController(sql)
 
   postRouter.route('/post/:id')
     .get((req, res) => {
@@ -38,6 +39,24 @@ function router(sql) {
       .then(result => res.send(result))
       .catch(err => res.send(err));
     });
+  postRouter.route('/user/:id')
+  .get((req, res) => {
+    getPostsOfUser(req, res)
+    .then(result => res.send(result))
+    .catch(err => res.send(err));
+  });
+  postRouter.route('/info/:id')
+  .get((req, res) => {
+    getInfoOfUser(req, res)
+    .then(result => res.send(result))
+    .catch(err => res.send(err));
+  });
+  postRouter.route('/get/:type')
+  .get((req, res) => {
+    getOthers(req, res)
+    .then(result => res.send(result))
+    .catch(err => res.send(err));
+  });
   postRouter.route('/get/hashtag/all')
     .get((req, res) => {
       getAllHashTag(req, res)

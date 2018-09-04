@@ -60,7 +60,7 @@ function postController(sql) {
   function getPosts(req, res) {
     return new Promise((resolve, reject) => {
       const subRequest = new sql.Request();
-      subRequest.query('SELECT COUNT(*) as total FROM dbo.Post').
+      subRequest.query(`SELECT COUNT(*) as total FROM dbo.Post WHERE visible = 1`).
         then(resu => {
           const total_pages = Math.ceil(resu.recordset[0].total / 10);
           debug(total_pages)
@@ -81,7 +81,41 @@ function postController(sql) {
             ON comment.postId = [like].postId) total_like_comment
             ON total_like_comment.postId = Post.postId
             INNER JOIN dbo.[User] ON [User].userId = Post.authorId
-            AND visible = 1
+            WHERE visible = 1
+          )po WHERE RN > ${(page) * 10} AND RN <= ${(parseInt(page) + 1) * 10}`).then((result) => {
+            debug(`RN > ${(page) * 10} AND RN <= ${(parseInt(page)+ 1) * 10}`)
+              const postResult = result.recordset;
+              resolve({ total_pages, page, posts: postResult })
+            }).catch((err) => { debug(err); reject(false) });
+        })
+    }).catch((err) => { debug(err); reject(false) });
+  }
+  function getOthers(req, res) {
+    return new Promise((resolve, reject) => {
+      const subRequest = new sql.Request();
+      const { type } = req.params;
+      subRequest.query(`SELECT COUNT(*) as total FROM dbo.Post WHERE visible = 1 AND type='${type}'`).
+        then(resu => {
+          const total_pages = Math.ceil(resu.recordset[0].total / 10);
+          debug(total_pages)
+          const request = new sql.Request();
+          const likes = []
+          const { page } = req.query;
+          request.query(`SELECT po.postId, po.authorId,po.title, po.type, po.created_at, po.total_comments, po.total_likes, po.authorName, po.authorAvatar FROM (
+            SELECT ROW_NUMBER() OVER (Order by Post.postId DESC) AS RN, Post.postId, authorId, [name] AS 'authorName',
+            avatar AS 'authorAvatar', title, created_at, type, total_like_comment.total_comments, total_like_comment.total_likes
+            FROM dbo.Post LEFT JOIN 
+            ( SELECT comment.postId, comment.total_comments, [like].total_likes FROM ( SELECT Post.postId, COUNT([Like].userId) AS 'total_likes'
+            FROM dbo.Post LEFT JOIN dbo.[Like] ON [Like].postId = Post.postId
+            GROUP BY Post.postId) [like]
+            INNER JOIN 
+            ( SELECT Post.postId,COUNT(Comment.content) AS 'total_comments'
+            FROM dbo.Post LEFT JOIN dbo.Comment ON Comment.postId = Post.postId
+            GROUP BY Post.postId ) comment
+            ON comment.postId = [like].postId) total_like_comment
+            ON total_like_comment.postId = Post.postId
+            INNER JOIN dbo.[User] ON [User].userId = Post.authorId
+            WHERE visible = 1 AND type='${type}'
           )po WHERE RN > ${(page) * 10} AND RN <= ${(parseInt(page) + 1) * 10}`).then((result) => {
             debug(`RN > ${(page) * 10} AND RN <= ${(parseInt(page)+ 1) * 10}`)
               const postResult = result.recordset;
@@ -107,7 +141,7 @@ function postController(sql) {
     return new Promise((resolve, reject) => {
       const subRequest = new sql.Request();
       const { h } = req.query;
-      subRequest.query(`SELECT COUNT(*) as total FROM dbo.Post INNER JOIN dbo.Hashtag ON Hashtag.postId = Post.postId WHERE hashtag = '${h}'`).
+      subRequest.query(`SELECT COUNT(*) as total FROM dbo.Post INNER JOIN dbo.Hashtag ON Hashtag.postId = Post.postId WHERE hashtag = '${h}' AND visible = 1`).
         then(resu => {
           const total_pages = Math.ceil(resu.recordset[0].total / 10)
           const request = new sql.Request();
@@ -261,6 +295,55 @@ function postController(sql) {
       });
     });
   }
+  function getPostsOfUser(req, res) {
+    return new Promise((resolve, reject) => {
+      const subRequest = new sql.Request();
+      const { id } = req.params;
+      subRequest.query(`SELECT COUNT(*) as total FROM dbo.Post
+        INNER JOIN dbo.[User] ON [User].userId = Post.authorId
+        WHERE visible = 1 AND userId = ${id}`).
+        then(resu => {
+          const total_pages = Math.ceil(resu.recordset[0].total / 10);
+          debug(total_pages)
+          const request = new sql.Request();
+          const likes = []
+          const { page } = req.query;
+          request.query(`SELECT po.postId, po.authorId,po.title, po.type, po.created_at, po.total_comments, po.total_likes, po.authorName, po.authorAvatar FROM (
+            SELECT ROW_NUMBER() OVER (Order by Post.postId DESC) AS RN, Post.postId, authorId, [name] AS 'authorName',
+            avatar AS 'authorAvatar', title, created_at, type, total_like_comment.total_comments, total_like_comment.total_likes
+            FROM dbo.Post LEFT JOIN 
+            ( SELECT comment.postId, comment.total_comments, [like].total_likes FROM ( SELECT Post.postId, COUNT([Like].userId) AS 'total_likes'
+            FROM dbo.Post LEFT JOIN dbo.[Like] ON [Like].postId = Post.postId
+            GROUP BY Post.postId) [like]
+            INNER JOIN 
+            ( SELECT Post.postId,COUNT(Comment.content) AS 'total_comments'
+            FROM dbo.Post LEFT JOIN dbo.Comment ON Comment.postId = Post.postId
+            GROUP BY Post.postId ) comment
+            ON comment.postId = [like].postId) total_like_comment
+            ON total_like_comment.postId = Post.postId
+            INNER JOIN dbo.[User] ON [User].userId = Post.authorId
+            WHERE visible = 1 AND userId = ${id}
+          )po WHERE RN > ${(page) * 10} AND RN <= ${(parseInt(page) + 1) * 10}`).then((result) => {
+            debug(`RN > ${(page) * 10} AND RN <= ${(parseInt(page)+ 1) * 10}`)
+              const postResult = result.recordset;
+              resolve({ total_pages, page, posts: postResult })
+            }).catch((err) => { debug(err); reject(false) });
+        })
+    }).catch((err) => { debug(err); reject(false) });
+  }
+  function getInfoOfUser(req, res) {
+    return new Promise((resolve, reject) => {
+      const request = new sql.Request();
+      let { id } = req.params;
+      request.query(`SELECT [User].userId, name, avatar, description, COUNT([Like].userId) AS 'total_like' FROM dbo.[User] INNER JOIN dbo.Post ON Post.authorId = [User].userId 
+      INNER JOIN dbo.[Like] ON [Like].postId = Post.postId
+      WHERE visible = 1 AND [User].userId = ${id}
+      GROUP BY [User].userId, name, avatar, description`).then((result) => {
+          const rs = result.recordset[0];
+          resolve({rs})
+        }).catch(() => reject(false));
+    })
+  }
   return {
     getPostById,
     getPosts,
@@ -273,7 +356,10 @@ function postController(sql) {
     addCommentToPost,
     addLikeToPost,
     deleteAPost,
-    deleteAComment
+    deleteAComment,
+    getOthers,
+    getPostsOfUser,
+    getInfoOfUser
   }
 }
 
