@@ -175,7 +175,7 @@ function postController(sql) {
       let { id } = req.params;
       request.query(`SELECT hashtag FROM dbo.Hashtag WHERE postId = ${id}`).then((result) => {
         const hashtagResult = result.recordset;
-        if (hashtagResult) resolve(hashtagResult)
+        if (hashtagResult) resolve({hashtagResult})
         else resolve([])
       }).catch((err) => {
         debug(err)
