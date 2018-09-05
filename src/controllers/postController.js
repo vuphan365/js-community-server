@@ -348,11 +348,15 @@ function postController(sql) {
     return new Promise((resolve, reject) => {
       const request = new sql.Request();
       let { id } = req.params;
+      debug(id);
       request.query(`SELECT [Like].postId FROM dbo.Post INNER JOIN dbo.[Like] ON [Like].postId = Post.postId 
       INNER JOIN dbo.[User] ON [User].userId = [Like].userId WHERE [Like].userId=${id}`).then((result) => {
-          const rs = result.recordset[0];
-          resolve({rs})
-        }).catch(() => reject(false));
+          const liked = result.recordset;
+          resolve({liked})
+        }).catch((err) =>{
+          debug(err);
+          reject(false)
+        } );
     })
   }
   return {

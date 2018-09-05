@@ -99,7 +99,7 @@ function router(sql) {
     .then(result => res.send(result))
     .catch(err => res.send(err));
   });     
-  postRouter.route('/get/like:id')
+  postRouter.route('/get/liked/:id')
   .get((req, res) => {
     getLikeOfUser(req, res)
     .then(result => res.send(result))
