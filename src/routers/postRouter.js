@@ -51,7 +51,7 @@ function router(sql) {
     .then(result => res.send(result))
     .catch(err => res.send(err));
   });
-  postRouter.route('/get/:type')
+  postRouter.route('/get/type/:type')
   .get((req, res) => {
     getOthers(req, res)
     .then(result => res.send(result))

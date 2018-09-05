@@ -243,7 +243,7 @@ function postController(sql) {
       });
     });
   }
-  function addLikeToPost(req, res) {
+  function  addLikeToPost(req, res) {
     return new Promise((resolve, reject) => {
       const transaction = new sql.Transaction();
       const { postId, userId } = req.body
