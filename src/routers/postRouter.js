@@ -7,7 +7,7 @@ const postController = require('../controllers/postController')
 function router(sql) {
   const { getPostById, getPosts, getLikeById, getCommentById, getPostsByHashtag, getAllHashTag
   , getHashTagById, addPost, addCommentToPost, addLikeToPost, deleteAPost, deleteAComment
-  , getOthers, getPostsOfUser, getInfoOfUser,getLikeOfUser } = postController(sql)
+  , getOthers, getPostsOfUser, getInfoOfUser,getLikeOfUser, searchPosts } = postController(sql)
 
   postRouter.route('/post/:id')
     .get((req, res) => {
@@ -104,7 +104,13 @@ function router(sql) {
     getLikeOfUser(req, res)
     .then(result => res.send(result))
     .catch(err => res.send(err));
-  });     
+  });  
+  postRouter.route('/search')
+  .get((req, res) => {
+    searchPosts(req, res)
+    .then(result => res.send(result))
+    .catch(err => res.send(err));
+  });   
   return postRouter; 
 }
 
