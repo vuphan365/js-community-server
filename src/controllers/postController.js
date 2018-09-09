@@ -365,6 +365,7 @@ function postController(sql) {
       const { q } = req.query; 
       subRequest.query(`SELECT COUNT(*) as total FROM dbo.Post WHERE visible = 1 AND title LIKE '%${q}' OR title LIKE '${q}%' OR title LIKE '%${q}%' `).
         then(resu => {
+          const total = resu.recordset[0].total;
           const total_pages = Math.ceil(resu.recordset[0].total / 10);
           debug(total_pages)
           const request = new sql.Request();
@@ -388,7 +389,7 @@ function postController(sql) {
           )po WHERE RN > ${(page) * 10} AND RN <= ${(parseInt(page) + 1) * 10}`).then((result) => {
             debug(`RN > ${(page) * 10} AND RN <= ${(parseInt(page)+ 1) * 10}`)
               const postResult = result.recordset;
-              resolve({ total_pages, page, posts: postResult })
+              resolve({ total, query: q, total_pages, page, posts: postResult })
             }).catch((err) => { debug(err); reject(false) });
         })
     }).catch((err) => { debug(err); reject(false) });
