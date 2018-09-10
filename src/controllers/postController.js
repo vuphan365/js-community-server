@@ -366,11 +366,13 @@ function postController(sql) {
       subRequest.query(`SELECT COUNT(*) as total FROM dbo.Post WHERE visible = 1 AND title LIKE '%${q}' OR title LIKE '${q}%' OR title LIKE '%${q}%' `).
         then(resu => {
           const total = resu.recordset[0].total;
+          console.log(total);
           const total_pages = Math.ceil(resu.recordset[0].total / 10);
           debug(total_pages)
           const request = new sql.Request();
           const likes = []
           const { page } = req.query;
+          console.log('page ' + page);
           request.query(`SELECT po.postId, po.authorId,po.title, po.type, po.created_at, po.total_comments, po.total_likes, po.authorName, po.authorAvatar FROM (
             SELECT ROW_NUMBER() OVER (Order by Post.postId DESC) AS RN, Post.postId, authorId, [name] AS 'authorName',
             avatar AS 'authorAvatar', title, created_at, type, total_like_comment.total_comments, total_like_comment.total_likes
@@ -385,7 +387,7 @@ function postController(sql) {
             ON comment.postId = [like].postId) total_like_comment
             ON total_like_comment.postId = Post.postId
             INNER JOIN dbo.[User] ON [User].userId = Post.authorId
-            WHERE visible = 1 AND title LIKE '%${q}' OR title LIKE '${q}%' OR title LIKE '%${q}%'
+            WHERE visible = 1 AND title LIKE N'%${q}%'
           )po WHERE RN > ${(page) * 10} AND RN <= ${(parseInt(page) + 1) * 10}`).then((result) => {
             debug(`RN > ${(page) * 10} AND RN <= ${(parseInt(page)+ 1) * 10}`)
               const postResult = result.recordset;
